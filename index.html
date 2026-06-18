@@ -1,548 +1,525 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoresheet EV Calculator — Find the Value</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BetBee EV Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        :root {
-            --black: #0a0a0a;
-            --dark-bg: #1a1a1a;
-            --dark-card: #2a2a2a;
-            --gold: #d4af37;
-            --gold-light: #e8c547;
-            --gold-dark: #b8941e;
-            --text-primary: #f5f5f5;
-            --text-secondary: #b0b0b0;
-            --accent-success: #2ecc71;
-            --accent-warning: #f39c12;
-            --accent-danger: #e74c3c;
-            --border: #3a3a3a;
-        }
+  :root {
+    --navy: #0D2545;
+    --navy-deep: #081A33;
+    --navy-mid: #1B3F6E;
+    --navy-light: #2A4F7E;
+    --navy-surface: #15315A;
+    --gold: #C8991A;
+    --gold-light: #E6BC4A;
+    --gold-bright: #F0D97A;
+    --gold-dark: #8A6800;
+    --gold-bg: rgba(200, 153, 26, 0.08);
+    --text: #EEF1F7;
+    --text-muted: #9AAABB;
+    --text-faint: #6A7A8B;
+    --border: rgba(200, 153, 26, 0.2);
+    --border-strong: rgba(200, 153, 26, 0.4);
+  }
 
-        body {
-            font-family: 'Georgia', 'Garamond', serif;
-            background: linear-gradient(135deg, var(--black) 0%, #151515 100%);
-            color: var(--text-primary);
-            line-height: 1.7;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--navy-deep);
+    background-image:
+      radial-gradient(ellipse at top, var(--navy) 0%, var(--navy-deep) 70%),
+      linear-gradient(180deg, var(--navy-deep) 0%, #050E1E 100%);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
 
-        /* Subtle background pattern with bees and hooks */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='bee' x='0' y='0' width='100' height='100' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='50' cy='50' r='4' fill='%23d4af37' opacity='0.03'/%3E%3Cpath d='M 48 45 Q 50 40 52 45' stroke='%23d4af37' stroke-width='0.5' fill='none' opacity='0.03'/%3E%3C/pattern%3E%3Cpattern id='hook' x='0' y='0' width='150' height='150' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 75 30 Q 85 50 80 70 Q 75 80 65 75' stroke='%23d4af37' stroke-width='0.8' fill='none' opacity='0.02'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='200' height='200' fill='url(%23bee)'/%3E%3Crect width='200' height='200' fill='url(%23hook)'/%3E%3C/svg%3E");
-            pointer-events: none;
-            opacity: 0.8;
-            z-index: -1;
-        }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            position: relative;
-            z-index: 1;
-        }
+  .masthead {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
 
-        /* Tabs */
-        .tabs {
-            display: none;
-        }
+  .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
 
-        /* Form Section */
-        .form-section {
-            background: rgba(42, 42, 42, 0.3);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(5px);
-        }
+  .title-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
 
-        .form-section h2 {
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
-            letter-spacing: 1px;
-            font-weight: 400;
-        }
+  .masthead h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--gold-bright);
+    letter-spacing: 1px;
+    line-height: 1;
+  }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
+  .masthead .tagline {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
+  .card {
+    background: var(--navy);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  }
 
-        label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            letter-spacing: 0.3px;
-            font-weight: normal;
-        }
+  .section-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
 
-        input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 0.75rem 1rem;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
+  .section-title::before,
+  .section-title::after {
+    content: '';
+    height: 1px;
+    background: var(--border);
+    flex: 1;
+  }
 
-        input:focus {
-            outline: none;
-            border-color: var(--gold);
-            background: rgba(212, 175, 55, 0.1);
-            box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
-        }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
+  .form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+  }
 
-        .odds-section, .points-section {
-            border-top: 1px solid var(--border);
-            padding-top: 1.5rem;
-            margin-top: 1.5rem;
-        }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
 
-        .odds-label, .points-label {
-            font-size: 0.85rem;
-            color: var(--gold);
-            margin-bottom: 1rem;
-            display: block;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
+  label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
 
-        .odds-row, .points-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 0.75rem;
-        }
+  input {
+    background: var(--navy-deep);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.65rem 0.85rem;
+    color: var(--text);
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
 
-        button {
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-            color: var(--black);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 4px;
-            font-size: 0.95rem;
-            font-weight: normal;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            letter-spacing: 1px;
-            margin-top: 1rem;
-            font-family: 'Georgia', 'Garamond', serif;
-        }
+  input::placeholder { color: var(--text-faint); }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
-        }
+  input:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: var(--navy-surface);
+    box-shadow: 0 0 0 3px var(--gold-bg);
+  }
 
-        button:active {
-            transform: translateY(0);
-        }
+  input.auto-filled {
+    color: var(--gold-light);
+    border-color: var(--gold-dark);
+    background: rgba(200, 153, 26, 0.05);
+  }
 
-        /* Matches Grid */
-        .matches-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
+  button {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+    color: var(--navy-deep);
+    border: none;
+    padding: 0.85rem 1.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+  }
 
-        .match-card {
-            background: rgba(42, 42, 42, 0.5);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-            position: relative;
-        }
+  button:hover {
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-bright) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(200, 153, 26, 0.3);
+  }
 
-        .match-card:hover {
-            border-color: var(--gold);
-            background: rgba(42, 42, 42, 0.8);
-            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.1);
-        }
+  button:active { transform: translateY(0); }
 
-        .match-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
-        }
+  button.secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    margin-top: 0.75rem;
+  }
 
-        .match-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
+  button.secondary:hover {
+    background: var(--navy-mid);
+    color: var(--text);
+    box-shadow: none;
+  }
 
-        .delete-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 0;
-            transition: color 0.3s ease;
-        }
+  .result-card {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px rgba(200, 153, 26, 0.15);
+  }
 
-        .delete-btn:hover {
-            color: var(--accent-danger);
-        }
+  .result-header {
+    text-align: center;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
 
-        .best-pick {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.03) 100%);
-            border-left: 2px solid var(--gold);
-            padding: 1.5rem 1rem;
-            margin-bottom: 1.5rem;
-            border-radius: 2px;
-            font-size: 0.95rem;
-        }
+  .result-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
 
-        .best-pick-label {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-            letter-spacing: 1px;
-            font-weight: normal;
-        }
+  .result-pick {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2rem;
+    color: var(--gold-bright);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
 
-        .best-pick-value {
-            color: var(--gold-light);
-            font-weight: normal;
-            font-size: 1.2rem;
-        }
+  .result-ev {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
 
-        .outcome-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
+  .result-ev .ev-value {
+    color: var(--gold-light);
+    font-weight: 600;
+    font-size: 1rem;
+  }
 
-        .outcome {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 0.75rem;
-            font-size: 0.85rem;
-        }
+  .outcomes {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+  }
 
-        .outcome-label {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-            display: block;
-            letter-spacing: 1px;
-            font-weight: normal;
-        }
+  .outcome {
+    background: var(--navy-deep);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem 0.75rem;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
 
-        .outcome-ev {
-            color: var(--gold);
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-        }
+  .outcome.best {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, rgba(200, 153, 26, 0.12) 0%, var(--navy-deep) 100%);
+  }
 
-        .outcome-details {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
+  .outcome-name {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
 
-        /* Leaderboard */
-        .leaderboard-table {
-            width: 100%;
-            background: rgba(42, 42, 42, 0.5);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-            backdrop-filter: blur(5px);
-        }
+  .outcome.best .outcome-name {
+    color: var(--gold);
+  }
 
-        .leaderboard-table thead {
-            background: rgba(212, 175, 55, 0.1);
-            border-bottom: 1px solid var(--border);
-        }
+  .outcome-ev {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.6rem;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    line-height: 1;
+  }
 
-        .leaderboard-table th {
-            padding: 1rem;
-            text-align: left;
-            color: var(--gold);
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
+  .outcome.best .outcome-ev {
+    color: var(--gold-bright);
+  }
 
-        .leaderboard-table td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-        }
+  .outcome-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+  }
 
-        .leaderboard-table tr:last-child td {
-            border-bottom: none;
-        }
+  .outcome-details span {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0.25rem;
+  }
 
-        .player-name {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
+  .outcome-details .detail-label {
+    color: var(--text-faint);
+  }
 
-        .points-value {
-            color: var(--gold);
-            font-weight: 700;
-        }
+  .outcome-details .detail-value {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
 
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-secondary);
-        }
+  .outcome.best .outcome-details .detail-value {
+    color: var(--text);
+  }
 
-        .empty-state h3 {
-            color: var(--gold);
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
+  .helper-text {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    text-align: center;
+    margin-top: -1.25rem;
+    margin-bottom: 1.75rem;
+    font-style: italic;
+  }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .matches-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .tabs {
-                gap: 1rem;
-            }
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: rgba(42, 42, 42, 0.5);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            color: var(--gold);
-            font-size: 2rem;
-            font-weight: 700;
-        }
-    </style>
+  @media (max-width: 600px) {
+    .container { padding: 2rem 1rem 3rem; }
+    .masthead h1 { font-size: 2rem; }
+    .card { padding: 1.5rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .outcomes { grid-template-columns: 1fr; }
+    .result-pick { font-size: 1.5rem; }
+  }
+</style>
 </head>
 <body>
-    <main class="container" style="padding: 3rem 20px;">
-        <h1 style="text-align: center; font-size: 2.5rem; margin-bottom: 0.5rem; letter-spacing: 3px; font-weight: 400;">SCORESHEET</h1>
-        <p style="text-align: center; color: var(--gold); margin-bottom: 3rem; font-size: 0.95rem; letter-spacing: 2px; font-weight: normal;">EV Calculator</p>
-        
-        <div class="form-section" style="max-width: 600px; margin: 0 auto;">
-        <div class="form-section" style="max-width: 600px; margin: 0 auto;">
-            <h2>Calculate Best Pick</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="teamA">Team A</label>
-                    <input type="text" id="teamA" placeholder="e.g. Czechia">
-                </div>
-                <div class="form-group">
-                    <label for="teamB">Team B</label>
-                    <input type="text" id="teamB" placeholder="e.g. South Africa">
-                </div>
-            </div>
 
-            <div class="odds-section">
-                <span class="odds-label">Betfair Decimal Odds</span>
-                <div class="odds-row">
-                    <div class="form-group">
-                        <label for="oddsA">Team A Win</label>
-                        <input type="number" id="oddsA" placeholder="1.89" step="0.01" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="oddsDraw">Draw</label>
-                        <input type="number" id="oddsDraw" placeholder="3.7" step="0.01" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="oddsB">Team B Win</label>
-                        <input type="number" id="oddsB" placeholder="4.9" step="0.01" min="1">
-                    </div>
-                </div>
-            </div>
+<div class="container">
 
-            <div class="points-section">
-                <span class="points-label">Scoresheet Points</span>
-                <div class="points-row">
-                    <div class="form-group">
-                        <label for="ptsA">Team A Win Pts</label>
-                        <input type="number" id="ptsA" placeholder="5" step="1" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="ptsDraw">Draw Pts</label>
-                        <input type="number" id="ptsDraw" placeholder="7" step="1" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="ptsB">Team B Win Pts</label>
-                        <input type="number" id="ptsB" placeholder="8" step="1" min="1">
-                    </div>
-                </div>
-            </div>
+  <div class="masthead">
+    <h1>Scoresheet</h1>
+    <div class="tagline">EV Calculator</div>
+  </div>
 
-            <button onclick="calculateEV()">Calculate Best Pick</button>
+  <div class="card">
+    <div class="section-title">Teams</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="teamA">Team A</label>
+        <input type="text" id="teamA" placeholder="e.g. Czechia">
+      </div>
+      <div class="form-group">
+        <label for="teamB">Team B</label>
+        <input type="text" id="teamB" placeholder="e.g. South Africa">
+      </div>
+    </div>
+
+    <div class="section-title">Betfair Odds</div>
+    <div class="form-grid-3">
+      <div class="form-group">
+        <label for="oddsA">Team A Win</label>
+        <input type="number" id="oddsA" placeholder="1.89" step="0.01" min="1.01">
+      </div>
+      <div class="form-group">
+        <label for="oddsDraw">Draw</label>
+        <input type="number" id="oddsDraw" placeholder="3.70" step="0.01" min="1.01">
+      </div>
+      <div class="form-group">
+        <label for="oddsB">Team B Win</label>
+        <input type="number" id="oddsB" placeholder="auto" step="0.01" min="1.01">
+      </div>
+    </div>
+    <div class="helper-text">Team B odds fill automatically from Team A &amp; Draw (assumes 100% book)</div>
+
+    <div class="section-title">Scoresheet Points</div>
+    <div class="form-grid-3">
+      <div class="form-group">
+        <label for="ptsA">Team A Win</label>
+        <input type="number" id="ptsA" placeholder="5" step="1" min="1">
+      </div>
+      <div class="form-group">
+        <label for="ptsDraw">Draw</label>
+        <input type="number" id="ptsDraw" placeholder="7" step="1" min="1">
+      </div>
+      <div class="form-group">
+        <label for="ptsB">Team B Win</label>
+        <input type="number" id="ptsB" placeholder="8" step="1" min="1">
+      </div>
+    </div>
+
+    <button onclick="calculateEV()">Calculate Best Pick</button>
+  </div>
+
+  <div id="result-container"></div>
+
+</div>
+
+<script>
+  const oddsAInput = document.getElementById('oddsA');
+  const oddsDrawInput = document.getElementById('oddsDraw');
+  const oddsBInput = document.getElementById('oddsB');
+
+  function round(num, decimals = 2) {
+    return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
+  }
+
+  function autoFillOddsB() {
+    const oddsA = parseFloat(oddsAInput.value);
+    const oddsDraw = parseFloat(oddsDrawInput.value);
+
+    if (!oddsA || !oddsDraw || oddsA <= 1 || oddsDraw <= 1) {
+      if (oddsBInput.classList.contains('auto-filled')) {
+        oddsBInput.value = '';
+        oddsBInput.classList.remove('auto-filled');
+      }
+      return;
+    }
+
+    const probA = 1 / oddsA;
+    const probDraw = 1 / oddsDraw;
+    const probB = 1 - probA - probDraw;
+
+    if (probB <= 0 || probB >= 1) {
+      oddsBInput.value = '';
+      oddsBInput.classList.remove('auto-filled');
+      return;
+    }
+
+    const oddsB = 1 / probB;
+    oddsBInput.value = round(oddsB, 2);
+    oddsBInput.classList.add('auto-filled');
+  }
+
+  oddsAInput.addEventListener('input', autoFillOddsB);
+  oddsDrawInput.addEventListener('input', autoFillOddsB);
+
+  oddsBInput.addEventListener('input', () => {
+    oddsBInput.classList.remove('auto-filled');
+  });
+
+  function calculateEV() {
+    const teamA = document.getElementById('teamA').value.trim() || 'Team A';
+    const teamB = document.getElementById('teamB').value.trim() || 'Team B';
+    const oddsA = parseFloat(oddsAInput.value);
+    const oddsDraw = parseFloat(oddsDrawInput.value);
+    const oddsB = parseFloat(oddsBInput.value);
+    const ptsA = parseInt(document.getElementById('ptsA').value);
+    const ptsDraw = parseInt(document.getElementById('ptsDraw').value);
+    const ptsB = parseInt(document.getElementById('ptsB').value);
+
+    if (!oddsA || !oddsDraw || !oddsB || !ptsA || !ptsDraw || !ptsB) {
+      alert('Please fill in all odds and points fields');
+      return;
+    }
+
+    const probA = 1 / oddsA;
+    const probDraw = 1 / oddsDraw;
+    const probB = 1 / oddsB;
+
+    const evA = probA * ptsA;
+    const evDraw = probDraw * ptsDraw;
+    const evB = probB * ptsB;
+
+    const outcomes = [
+      { name: `${teamA} Win`, shortName: teamA, ev: evA, prob: probA, pts: ptsA, odds: oddsA },
+      { name: 'The Draw', shortName: 'Draw', ev: evDraw, prob: probDraw, pts: ptsDraw, odds: oddsDraw },
+      { name: `${teamB} Win`, shortName: teamB, ev: evB, prob: probB, pts: ptsB, odds: oddsB }
+    ];
+
+    const bestIndex = outcomes.reduce((best, curr, i) =>
+      curr.ev > outcomes[best].ev ? i : best, 0);
+    const best = outcomes[bestIndex];
+
+    const html = `
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-label">Recommended Pick</div>
+          <div class="result-pick">${best.name}</div>
+          <div class="result-ev">Expected Value: <span class="ev-value">${round(best.ev, 2)}</span></div>
         </div>
+        <div class="outcomes">
+          ${outcomes.map((o, i) => `
+            <div class="outcome ${i === bestIndex ? 'best' : ''}">
+              <div class="outcome-name">${o.shortName}</div>
+              <div class="outcome-ev">${round(o.ev, 2)}</div>
+              <div class="outcome-details">
+                <span><span class="detail-label">Prob</span><span class="detail-value">${round(o.prob * 100, 1)}%</span></span>
+                <span><span class="detail-label">Points</span><span class="detail-value">${o.pts}</span></span>
+                <span><span class="detail-label">Odds</span><span class="detail-value">${o.odds}</span></span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <button class="secondary" onclick="clearResults()">Clear</button>
+      </div>
+    `;
 
-        <div id="result-container"></div>
-    </main>
+    document.getElementById('result-container').innerHTML = html;
+    document.getElementById('result-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
-    <script>
-        function roundNumber(num, decimals = 2) {
-            return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
-        }
+  function clearResults() {
+    document.getElementById('result-container').innerHTML = '';
+  }
 
-        function calculateImpliedProb(odds) {
-            return 1 / odds;
-        }
+  document.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') calculateEV();
+  });
+</script>
 
-        function calculateEV() {
-            const teamA = document.getElementById('teamA').value.trim();
-            const teamB = document.getElementById('teamB').value.trim();
-            const oddsA = parseFloat(document.getElementById('oddsA').value);
-            const oddsDraw = parseFloat(document.getElementById('oddsDraw').value);
-            const oddsB = parseFloat(document.getElementById('oddsB').value);
-            const ptsA = parseInt(document.getElementById('ptsA').value);
-            const ptsDraw = parseInt(document.getElementById('ptsDraw').value);
-            const ptsB = parseInt(document.getElementById('ptsB').value);
-
-            if (!teamA || !teamB || !oddsA || !oddsDraw || !oddsB || !ptsA || !ptsDraw || !ptsB) {
-                alert('Please fill in all fields');
-                return;
-            }
-
-            const probA = calculateImpliedProb(oddsA);
-            const probDraw = calculateImpliedProb(oddsDraw);
-            const probB = calculateImpliedProb(oddsB);
-
-            const evA = probA * ptsA;
-            const evDraw = probDraw * ptsDraw;
-            const evB = probB * ptsB;
-
-            const maxEv = Math.max(evA, evDraw, evB);
-            let bestOutcome = '';
-            let bestEv = 0;
-
-            if (maxEv === evA) {
-                bestOutcome = `${teamA} Win`;
-                bestEv = evA;
-            } else if (maxEv === evDraw) {
-                bestOutcome = 'Draw';
-                bestEv = evDraw;
-            } else {
-                bestOutcome = `${teamB} Win`;
-                bestEv = evB;
-            }
-
-            const resultHTML = `
-                <div class="form-section" style="max-width: 600px; margin: 2rem auto;">
-                    <h2 style="margin-bottom: 1.5rem;">Best Pick: <span style="color: var(--gold-light);">${bestOutcome}</span></h2>
-                    
-                    <div class="best-pick" style="margin-bottom: 1.5rem; padding: 1.5rem; font-size: 1rem;">
-                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">EXPECTED VALUE</div>
-                        <div style="font-size: 2rem; font-weight: 700; color: var(--gold-light);">${roundNumber(bestEv, 2)}</div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div class="outcome" style="border-left: 3px solid var(--gold); padding: 1rem;">
-                            <span class="outcome-label">${teamA} WIN</span>
-                            <div class="outcome-ev">${roundNumber(evA, 2)}</div>
-                            <div class="outcome-details">
-                                <span>Prob: ${roundNumber(probA * 100)}%</span>
-                                <span>Points: ${ptsA}</span>
-                                <span>Odds: ${oddsA}</span>
-                            </div>
-                        </div>
-                        <div class="outcome" style="padding: 1rem;">
-                            <span class="outcome-label">DRAW</span>
-                            <div class="outcome-ev">${roundNumber(evDraw, 2)}</div>
-                            <div class="outcome-details">
-                                <span>Prob: ${roundNumber(probDraw * 100)}%</span>
-                                <span>Points: ${ptsDraw}</span>
-                                <span>Odds: ${oddsDraw}</span>
-                            </div>
-                        </div>
-                        <div class="outcome" style="padding: 1rem;">
-                            <span class="outcome-label">${teamB} WIN</span>
-                            <div class="outcome-ev">${roundNumber(evB, 2)}</div>
-                            <div class="outcome-details">
-                                <span>Prob: ${roundNumber(probB * 100)}%</span>
-                                <span>Points: ${ptsB}</span>
-                                <span>Odds: ${oddsB}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button onclick="document.getElementById('result-container').innerHTML = ''">Clear Results</button>
-                </div>
-            `;
-
-            document.getElementById('result-container').innerHTML = resultHTML;
-        }
-
-        document.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                calculateEV();
-            }
-        });
-    </script>
 </body>
 </html>
