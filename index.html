@@ -287,15 +287,28 @@
 
   .outcome-ev {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     color: var(--text);
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.1rem;
     line-height: 1;
   }
 
   .outcome.best .outcome-ev {
     color: var(--gold-bright);
+  }
+
+  .outcome-ev-label {
+    font-size: 0.6rem;
+    color: var(--text-faint);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+
+  .outcome.best .outcome-ev-label {
+    color: var(--gold);
   }
 
   .outcome-details {
@@ -351,7 +364,28 @@
 <div class="container">
 
   <div class="masthead">
-    <h1>Scoresheet</h1>
+    <div class="title-row">
+      <svg class="title-icon" viewBox="0 0 60 50" xmlns="http://www.w3.org/2000/svg" aria-label="Bee">
+        <ellipse cx="20" cy="13" rx="9" ry="7" fill="#F0D97A" fill-opacity="0.25" stroke="#F0D97A" stroke-width="1"/>
+        <ellipse cx="36" cy="13" rx="9" ry="7" fill="#F0D97A" fill-opacity="0.25" stroke="#F0D97A" stroke-width="1"/>
+        <ellipse cx="28" cy="30" rx="18" ry="12" fill="#F0D97A" stroke="#0D2545" stroke-width="1.5"/>
+        <path d="M 20 21 Q 28 18 36 21 L 36 26 Q 28 23 20 26 Z" fill="#0D2545"/>
+        <path d="M 16 32 Q 28 29 40 32 L 40 36 Q 28 33 16 36 Z" fill="#0D2545"/>
+        <path d="M 10 31 L 4 32 L 10 28 Z" fill="#0D2545"/>
+        <circle cx="42" cy="27" r="1.6" fill="#0D2545"/>
+        <path d="M 44 22 Q 47 18 49 14" stroke="#0D2545" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+        <circle cx="49" cy="14" r="1.6" fill="#0D2545"/>
+        <path d="M 46 24 Q 50 22 53 19" stroke="#0D2545" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+        <circle cx="53" cy="19" r="1.6" fill="#0D2545"/>
+      </svg>
+      <h1>BetBee</h1>
+      <svg class="title-icon" viewBox="0 0 40 60" xmlns="http://www.w3.org/2000/svg" aria-label="Hook">
+        <circle cx="22" cy="8" r="5" stroke="#C8991A" stroke-width="2.5" fill="none"/>
+        <line x1="22" y1="13" x2="22" y2="38" stroke="#C8991A" stroke-width="2.8" stroke-linecap="round"/>
+        <path d="M 22 38 Q 22 53 13 53 Q 4 53 4 44 L 6 42" stroke="#C8991A" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 4 44 L 9 47" stroke="#C8991A" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </div>
     <div class="tagline">EV Calculator</div>
   </div>
 
@@ -400,8 +434,6 @@
         <input type="number" id="ptsB" placeholder="8" step="1" min="1">
       </div>
     </div>
-
-    <button onclick="calculateEV()">Calculate Best Pick</button>
   </div>
 
   <div id="result-container"></div>
@@ -412,6 +444,11 @@
   const oddsAInput = document.getElementById('oddsA');
   const oddsDrawInput = document.getElementById('oddsDraw');
   const oddsBInput = document.getElementById('oddsB');
+  const ptsAInput = document.getElementById('ptsA');
+  const ptsDrawInput = document.getElementById('ptsDraw');
+  const ptsBInput = document.getElementById('ptsB');
+  const teamAInput = document.getElementById('teamA');
+  const teamBInput = document.getElementById('teamB');
 
   function round(num, decimals = 2) {
     return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
@@ -444,25 +481,20 @@
     oddsBInput.classList.add('auto-filled');
   }
 
-  oddsAInput.addEventListener('input', autoFillOddsB);
-  oddsDrawInput.addEventListener('input', autoFillOddsB);
-
-  oddsBInput.addEventListener('input', () => {
-    oddsBInput.classList.remove('auto-filled');
-  });
-
-  function calculateEV() {
-    const teamA = document.getElementById('teamA').value.trim() || 'Team A';
-    const teamB = document.getElementById('teamB').value.trim() || 'Team B';
+  function updateResults() {
+    const teamA = teamAInput.value.trim() || 'Team A';
+    const teamB = teamBInput.value.trim() || 'Team B';
     const oddsA = parseFloat(oddsAInput.value);
     const oddsDraw = parseFloat(oddsDrawInput.value);
     const oddsB = parseFloat(oddsBInput.value);
-    const ptsA = parseInt(document.getElementById('ptsA').value);
-    const ptsDraw = parseInt(document.getElementById('ptsDraw').value);
-    const ptsB = parseInt(document.getElementById('ptsB').value);
+    const ptsA = parseInt(ptsAInput.value);
+    const ptsDraw = parseInt(ptsDrawInput.value);
+    const ptsB = parseInt(ptsBInput.value);
+
+    const container = document.getElementById('result-container');
 
     if (!oddsA || !oddsDraw || !oddsB || !ptsA || !ptsDraw || !ptsB) {
-      alert('Please fill in all odds and points fields');
+      container.innerHTML = '';
       return;
     }
 
@@ -484,7 +516,7 @@
       curr.ev > outcomes[best].ev ? i : best, 0);
     const best = outcomes[bestIndex];
 
-    const html = `
+    container.innerHTML = `
       <div class="result-card">
         <div class="result-header">
           <div class="result-label">Recommended Pick</div>
@@ -496,6 +528,7 @@
             <div class="outcome ${i === bestIndex ? 'best' : ''}">
               <div class="outcome-name">${o.shortName}</div>
               <div class="outcome-ev">${round(o.ev, 2)}</div>
+              <div class="outcome-ev-label">EV</div>
               <div class="outcome-details">
                 <span><span class="detail-label">Prob</span><span class="detail-value">${round(o.prob * 100, 1)}%</span></span>
                 <span><span class="detail-label">Points</span><span class="detail-value">${o.pts}</span></span>
@@ -504,21 +537,23 @@
             </div>
           `).join('')}
         </div>
-        <button class="secondary" onclick="clearResults()">Clear</button>
       </div>
     `;
-
-    document.getElementById('result-container').innerHTML = html;
-    document.getElementById('result-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function clearResults() {
-    document.getElementById('result-container').innerHTML = '';
-  }
+  [oddsAInput, oddsDrawInput].forEach(el => el.addEventListener('input', () => {
+    autoFillOddsB();
+    updateResults();
+  }));
 
-  document.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') calculateEV();
+  oddsBInput.addEventListener('input', () => {
+    oddsBInput.classList.remove('auto-filled');
+    updateResults();
   });
+
+  [ptsAInput, ptsDrawInput, ptsBInput, teamAInput, teamBInput].forEach(el =>
+    el.addEventListener('input', updateResults)
+  );
 </script>
 
 </body>
