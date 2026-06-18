@@ -359,8 +359,127 @@
     letter-spacing: 1px;
     font-weight: 500;
     border: 1px solid var(--border);
-    margin-left: 0.5rem;
     vertical-align: 2px;
+  }
+
+  .section-title-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-btn {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1;
+    transition: all 0.2s ease;
+  }
+
+  .info-btn:hover {
+    background: var(--gold);
+    color: var(--navy-deep);
+    transform: none;
+    box-shadow: none;
+  }
+
+  .info-panel {
+    display: none;
+    position: relative;
+    background: rgba(200, 153, 26, 0.06);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    padding: 1.25rem 2.5rem 1.25rem 1.25rem;
+    margin: -0.5rem 0 1.5rem;
+    font-family: 'Inter', sans-serif;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  .info-panel.open {
+    display: block;
+  }
+
+  .info-panel h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1rem;
+    color: var(--gold-light);
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .info-panel p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 0.6rem;
+  }
+
+  .info-panel p:last-child {
+    margin-bottom: 0;
+  }
+
+  .info-panel .formula {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    color: var(--gold-light);
+    text-align: center;
+    padding: 0.6rem;
+    background: var(--navy-deep);
+    border-radius: 4px;
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+  }
+
+  .info-close {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 400;
+    font-family: 'Inter', sans-serif;
+    line-height: 1;
+    transition: all 0.2s ease;
+    width: 26px;
+  }
+
+  .info-close:hover {
+    background: var(--navy-mid);
+    color: var(--text);
+    transform: none;
+    box-shadow: none;
   }
 
   .outcome-edge-bar {
@@ -502,7 +621,21 @@
       </div>
     </div>
 
-    <div class="section-title">Field Predictions <span class="optional-tag">Optional</span></div>
+    <div class="section-title">
+      <span class="section-title-inner">
+        Field Predictions
+        <span class="optional-tag">Optional</span>
+        <button class="info-btn" onclick="toggleInfo()" aria-label="How is Edge calculated?">?</button>
+      </span>
+    </div>
+    <div class="info-panel" id="info-panel">
+      <button class="info-close" onclick="toggleInfo()" aria-label="Close">Ã—</button>
+      <h4>How Edge works</h4>
+      <p>Pure EV tells you the best pick mathematically â€” but in a league against 12 friends, what matters is gaining ground on them, not just scoring points.</p>
+      <p class="formula">Edge = EV Ã— (1 âˆ’ Field share)</p>
+      <p>If everyone's on the favourite, picking it gains you nothing even when it hits. A contrarian pick (low field share) keeps most of its EV as Edge â€” when it hits, you leap above the pack.</p>
+      <p>With field data filled in, the recommendation switches from highest EV (single-match math) to highest Edge (league-aware).</p>
+    </div>
     <div class="form-grid-3">
       <div class="form-group">
         <label for="fieldA">Team A Win %</label>
@@ -525,6 +658,10 @@
 </div>
 
 <script>
+  function toggleInfo() {
+    document.getElementById('info-panel').classList.toggle('open');
+  }
+
   const oddsAInput = document.getElementById('oddsA');
   const oddsDrawInput = document.getElementById('oddsDraw');
   const oddsBInput = document.getElementById('oddsB');
