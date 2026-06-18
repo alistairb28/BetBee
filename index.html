@@ -349,6 +349,73 @@
     font-style: italic;
   }
 
+  .optional-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.55rem;
+    color: var(--text-faint);
+    background: var(--navy-deep);
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 1px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    margin-left: 0.5rem;
+    vertical-align: 2px;
+  }
+
+  .outcome-edge-bar {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .outcome-edge-label {
+    font-size: 0.55rem;
+    color: var(--text-faint);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .outcome-edge-value {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+
+  .outcome-edge-value.positive {
+    color: var(--gold-light);
+  }
+
+  .outcome-edge-value.negative {
+    color: #C97070;
+  }
+
+  .outcome.best .outcome-edge-value.positive {
+    color: var(--gold-bright);
+  }
+
+  .field-baseline {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    letter-spacing: 0.5px;
+  }
+
+  .field-baseline span {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
   @media (max-width: 600px) {
     .container { padding: 2rem 1rem 3rem; }
     .masthead h1 { font-size: 2rem; }
@@ -434,6 +501,23 @@
         <input type="number" id="ptsB" placeholder="8" step="1" min="1">
       </div>
     </div>
+
+    <div class="section-title">Field Predictions <span class="optional-tag">Optional</span></div>
+    <div class="form-grid-3">
+      <div class="form-group">
+        <label for="fieldA">Team A Win %</label>
+        <input type="number" id="fieldA" placeholder="81" step="1" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label for="fieldDraw">Draw %</label>
+        <input type="number" id="fieldDraw" placeholder="13" step="1" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label for="fieldB">Team B Win %</label>
+        <input type="number" id="fieldB" placeholder="6" step="1" min="0" max="100">
+      </div>
+    </div>
+    <div class="helper-text">From the app's "Predicted Results" â€” when filled, the recommendation switches to highest Edge (contrarian-aware)</div>
   </div>
 
   <div id="result-container"></div>
@@ -449,6 +533,9 @@
   const ptsBInput = document.getElementById('ptsB');
   const teamAInput = document.getElementById('teamA');
   const teamBInput = document.getElementById('teamB');
+  const fieldAInput = document.getElementById('fieldA');
+  const fieldDrawInput = document.getElementById('fieldDraw');
+  const fieldBInput = document.getElementById('fieldB');
 
   function round(num, decimals = 2) {
     return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
@@ -506,15 +593,41 @@
     const evDraw = probDraw * ptsDraw;
     const evB = probB * ptsB;
 
+    // Field predictions - optional
+    const rawFieldA = parseFloat(fieldAInput.value);
+    const rawFieldDraw = parseFloat(fieldDrawInput.value);
+    const rawFieldB = parseFloat(fieldBInput.value);
+    const hasField = !isNaN(rawFieldA) && !isNaN(rawFieldDraw) && !isNaN(rawFieldB);
+
+    let fieldA = 0, fieldDraw = 0, fieldB = 0;
+    if (hasField) {
+      // Normalise in case they don't sum to exactly 100
+      const total = rawFieldA + rawFieldDraw + rawFieldB;
+      fieldA = total > 0 ? rawFieldA / total : 0;
+      fieldDraw = total > 0 ? rawFieldDraw / total : 0;
+      fieldB = total > 0 ? rawFieldB / total : 0;
+    }
+
     const outcomes = [
-      { name: `${teamA} Win`, shortName: teamA, ev: evA, prob: probA, pts: ptsA, odds: oddsA },
-      { name: 'The Draw', shortName: 'Draw', ev: evDraw, prob: probDraw, pts: ptsDraw, odds: oddsDraw },
-      { name: `${teamB} Win`, shortName: teamB, ev: evB, prob: probB, pts: ptsB, odds: oddsB }
+      { name: `${teamA} Win`, shortName: teamA, ev: evA, prob: probA, pts: ptsA, odds: oddsA, fieldPct: fieldA },
+      { name: 'The Draw', shortName: 'Draw', ev: evDraw, prob: probDraw, pts: ptsDraw, odds: oddsDraw, fieldPct: fieldDraw },
+      { name: `${teamB} Win`, shortName: teamB, ev: evB, prob: probB, pts: ptsB, odds: oddsB, fieldPct: fieldB }
     ];
 
+    // Edge = EV Ã— (1 - field share). Captures contrarian leverage: how much you gain over the field IF you're right.
+    outcomes.forEach(o => {
+      o.edge = hasField ? o.ev * (1 - o.fieldPct) : null;
+    });
+
+    // Recommendation: use Edge when field data is provided (league-aware), else EV (single-match math).
+    const rankBy = hasField ? 'edge' : 'ev';
     const bestIndex = outcomes.reduce((best, curr, i) =>
-      curr.ev > outcomes[best].ev ? i : best, 0);
+      curr[rankBy] > outcomes[best][rankBy] ? i : best, 0);
     const best = outcomes[bestIndex];
+
+    const edgeHeaderHtml = hasField
+      ? `<div class="result-ev" style="margin-top: 0.4rem;">Edge: <span class="ev-value">${round(best.edge, 2)}</span></div>`
+      : '';
 
     container.innerHTML = `
       <div class="result-card">
@@ -522,20 +635,34 @@
           <div class="result-label">Recommended Pick</div>
           <div class="result-pick">${best.name}</div>
           <div class="result-ev">Expected Value: <span class="ev-value">${round(best.ev, 2)}</span></div>
+          ${edgeHeaderHtml}
         </div>
         <div class="outcomes">
-          ${outcomes.map((o, i) => `
-            <div class="outcome ${i === bestIndex ? 'best' : ''}">
-              <div class="outcome-name">${o.shortName}</div>
-              <div class="outcome-ev">${round(o.ev, 2)}</div>
-              <div class="outcome-ev-label">EV</div>
-              <div class="outcome-details">
-                <span><span class="detail-label">Prob</span><span class="detail-value">${round(o.prob * 100, 1)}%</span></span>
-                <span><span class="detail-label">Points</span><span class="detail-value">${o.pts}</span></span>
-                <span><span class="detail-label">Odds</span><span class="detail-value">${o.odds}</span></span>
+          ${outcomes.map((o, i) => {
+            const edgeBar = hasField ? `
+              <div class="outcome-edge-bar">
+                <div class="outcome-edge-label">Edge</div>
+                <div class="outcome-edge-value ${o.edge > 0 ? 'positive' : ''}">${round(o.edge, 2)}</div>
               </div>
-            </div>
-          `).join('')}
+            ` : '';
+            const fieldRow = hasField ? `
+              <span><span class="detail-label">Field</span><span class="detail-value">${round(o.fieldPct * 100, 0)}%</span></span>
+            ` : '';
+            return `
+              <div class="outcome ${i === bestIndex ? 'best' : ''}">
+                <div class="outcome-name">${o.shortName}</div>
+                <div class="outcome-ev">${round(o.ev, 2)}</div>
+                <div class="outcome-ev-label">EV</div>
+                <div class="outcome-details">
+                  <span><span class="detail-label">Prob</span><span class="detail-value">${round(o.prob * 100, 1)}%</span></span>
+                  <span><span class="detail-label">Points</span><span class="detail-value">${o.pts}</span></span>
+                  <span><span class="detail-label">Odds</span><span class="detail-value">${o.odds}</span></span>
+                  ${fieldRow}
+                </div>
+                ${edgeBar}
+              </div>
+            `;
+          }).join('')}
         </div>
       </div>
     `;
@@ -551,7 +678,8 @@
     updateResults();
   });
 
-  [ptsAInput, ptsDrawInput, ptsBInput, teamAInput, teamBInput].forEach(el =>
+  [ptsAInput, ptsDrawInput, ptsBInput, teamAInput, teamBInput,
+   fieldAInput, fieldDrawInput, fieldBInput].forEach(el =>
     el.addEventListener('input', updateResults)
   );
 </script>
